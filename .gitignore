@@ -1,0 +1,16 @@
+node_modules/
+__pycache__/
+.env
+.next/
+venv/
+*.pyc
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+.nyc_output/
+deployed-addresses.json
+data/
+*.pt
+*.pth
