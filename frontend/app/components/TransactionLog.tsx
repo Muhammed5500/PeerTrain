@@ -12,7 +12,7 @@ interface TransactionLogProps {
 
 export default function TransactionLog({ transactions }: TransactionLogProps) {
   const explorerUrl = process.env.NEXT_PUBLIC_MONAD_EXPLORER || "https://testnet.monadexplorer.com";
-  const recent = [...transactions].reverse().slice(0, 10);
+  const recent = [...transactions].reverse();
 
   return (
     <div className="rounded-xl border border-[#222] bg-[#141414] p-4">
