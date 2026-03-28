@@ -45,7 +45,7 @@ class TrainingCoordinator:
 
         self.round_history = []
         self.current_round = 0
-        self.total_rounds = 10
+        self.total_rounds = 20
 
     def run_round(self) -> dict:
         self.current_round += 1
@@ -62,17 +62,17 @@ class TrainingCoordinator:
         for i, (node_id, node) in enumerate(self.nodes.items()):
             node_key = f"node_{i}"
 
-            # Shared (exam) data
+            # Shared (exam) data — used for verification
             shared_images, shared_labels = self.data_manager.get_batch(
-                round_data[node_key]["shared_indices"][:256]  # limit batch size
+                round_data[node_key]["shared_indices"][:512]
             )
             shared_gradients[node_id] = node.compute_gradient(
                 self.model, shared_images, shared_labels
             )
 
-            # Private data
+            # Private data — used for training (large batch for better convergence)
             private_images, private_labels = self.data_manager.get_batch(
-                round_data[node_key]["private_indices"][:256]
+                round_data[node_key]["private_indices"][:2048]
             )
             private_gradients[node_id] = node.compute_gradient(
                 self.model, private_images, private_labels
@@ -111,6 +111,30 @@ class TrainingCoordinator:
         if honest_gradients:
             self._aggregate_and_update(honest_gradients)
 
+        # 6b. Extra training steps on honest nodes' data for better convergence
+        honest_node_keys = []
+        for i, (node_id, _) in enumerate(self.nodes.items()):
+            if pp_result["decisions"][node_id] == "reward":
+                honest_node_keys.append(f"node_{i}")
+
+        for step in range(3):
+            step_grads = []
+            for node_key in honest_node_keys:
+                start = 2048 + step * 512
+                end = start + 512
+                indices = round_data[node_key]["private_indices"][start:end]
+                if len(indices) == 0:
+                    continue
+                imgs, lbls = self.data_manager.get_batch(indices)
+                self.model.zero_grad()
+                output = self.model(imgs)
+                loss = torch.nn.functional.cross_entropy(output, lbls)
+                loss.backward()
+                grad = {n: p.grad.clone() for n, p in self.model.named_parameters()}
+                step_grads.append(grad)
+            if step_grads:
+                self._aggregate_and_update(step_grads)
+
         # 7. Evaluate model
         accuracy = self._evaluate()
 
@@ -120,7 +144,9 @@ class TrainingCoordinator:
             try:
                 for node_id in self.nodes.keys():
                     addr = self.node_addresses[node_id]
-                    stakes[node_id] = self.chain.get_stake(addr)
+                    wei = self.chain.get_stake(addr)
+                    # Convert wei to readable milliMON (1 MON = 1000)
+                    stakes[node_id] = round(wei / 1e15)  # milliMON
             except Exception:
                 pass
 
@@ -144,7 +170,7 @@ class TrainingCoordinator:
                 avg_grad = torch.mean(
                     torch.stack([g[name] for g in gradients]), dim=0
                 )
-                param -= 0.01 * avg_grad
+                param -= 0.05 * avg_grad
 
     def _evaluate(self) -> float:
         self.model.eval()

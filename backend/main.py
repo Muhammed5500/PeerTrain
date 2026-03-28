@@ -28,7 +28,7 @@ def root():
 @app.post("/start-training")
 async def start_training():
     global coordinator, training_task
-    coordinator = TrainingCoordinator(use_chain=False)
+    coordinator = TrainingCoordinator(use_chain=True)
 
     async def run_training():
         for _ in range(coordinator.total_rounds):
