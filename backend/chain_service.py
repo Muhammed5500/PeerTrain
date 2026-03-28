@@ -12,12 +12,19 @@ class ChainService:
         rpc_url = os.getenv("MONAD_RPC_URL", "https://testnet-rpc.monad.xyz")
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
 
-        # Load contract ABIs from hardhat artifacts
+        # Load contract ABIs (check local abis/ first, then hardhat artifacts)
+        abis_dir = Path(__file__).parent / "abis"
         artifacts_dir = Path(__file__).parent.parent / "contracts" / "artifacts" / "contracts"
 
-        self.registry_abi = self._load_abi(artifacts_dir / "NodeRegistry.sol" / "NodeRegistry.json")
-        self.vault_abi = self._load_abi(artifacts_dir / "StakeVault.sol" / "StakeVault.json")
-        self.engine_abi = self._load_abi(artifacts_dir / "ScoringEngine.sol" / "ScoringEngine.json")
+        def find_abi(name):
+            local = abis_dir / f"{name}.json"
+            if local.exists():
+                return local
+            return artifacts_dir / f"{name}.sol" / f"{name}.json"
+
+        self.registry_abi = self._load_abi(find_abi("NodeRegistry"))
+        self.vault_abi = self._load_abi(find_abi("StakeVault"))
+        self.engine_abi = self._load_abi(find_abi("ScoringEngine"))
 
         # Contract addresses from env
         registry_addr = os.getenv("NODE_REGISTRY_ADDRESS", "")
