@@ -19,7 +19,7 @@ export default function NodeCard({
   decision,
   isActive,
 }: NodeCardProps) {
-  const stakeChange = stake - initialStake;
+  const stakeChange = Math.round((stake - initialStake) * 10000) / 10000;
   const scoreWidth = score !== null ? Math.max(0, Math.min(100, ((score + 1) / 2) * 100)) : 0;
 
   const getScoreColor = () => {
@@ -77,7 +77,7 @@ export default function NodeCard({
       <div className="flex justify-between items-center text-sm">
         <span className="text-[#888]">Stake</span>
         <div className="flex items-center gap-2">
-          <span className="font-mono">{stake}</span>
+          <span className="font-mono">{stake.toFixed(4)} MON</span>
           {stakeChange !== 0 && (
             <span
               className={`text-xs font-bold ${
@@ -85,7 +85,7 @@ export default function NodeCard({
               }`}
             >
               {stakeChange > 0 ? "+" : ""}
-              {stakeChange}
+              {stakeChange.toFixed(4)}
             </span>
           )}
         </div>

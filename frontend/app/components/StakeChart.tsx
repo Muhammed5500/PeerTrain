@@ -9,7 +9,7 @@ interface StakeChartProps {
 export default function StakeChart({ data }: StakeChartProps) {
   return (
     <div className="rounded-xl border border-[#222] bg-[#141414] p-4">
-      <h3 className="text-sm font-semibold text-[#888] mb-3">Stake History</h3>
+      <h3 className="text-sm font-semibold text-[#888] mb-3">Stake History (MON)</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#222" />

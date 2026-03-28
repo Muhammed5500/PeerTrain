@@ -35,14 +35,6 @@ class TrainingCoordinator:
             "node_D": os.getenv("ADDRESS_NODE_D", "0x" + "D" * 40),
         }
 
-        # Simulated stakes (used when chain is not connected)
-        self.simulated_stakes = {
-            "node_A": 1000,
-            "node_B": 1000,
-            "node_C": 1000,
-            "node_D": 1000,
-        }
-
         self.round_history = []
         self.current_round = 0
         self.total_rounds = 20
@@ -93,16 +85,7 @@ class TrainingCoordinator:
             except Exception as e:
                 print(f"Chain submission failed: {e}")
 
-        # 5. Update simulated stakes
-        for node_id in self.nodes.keys():
-            score = pp_result["scores"][node_id]
-            stake = self.simulated_stakes[node_id]
-            if pp_result["decisions"][node_id] == "slash":
-                self.simulated_stakes[node_id] -= int(stake * 0.05)
-            else:
-                self.simulated_stakes[node_id] += int(stake * 0.02)
-
-        # 6. Update model with honest gradients only
+        # 5. Update model with honest gradients only
         honest_gradients = []
         for node_id in self.nodes.keys():
             if pp_result["decisions"][node_id] == "reward":
@@ -138,17 +121,18 @@ class TrainingCoordinator:
         # 7. Evaluate model
         accuracy = self._evaluate()
 
-        # 8. Get stakes
-        stakes = dict(self.simulated_stakes)
-        if self.use_chain:
-            try:
-                for node_id in self.nodes.keys():
+        # 8. Get stakes from chain (real MON values)
+        stakes = {}
+        for node_id in self.nodes.keys():
+            if self.use_chain:
+                try:
                     addr = self.node_addresses[node_id]
                     wei = self.chain.get_stake(addr)
-                    # Convert wei to readable milliMON (1 MON = 1000)
-                    stakes[node_id] = round(wei / 1e15)  # milliMON
-            except Exception:
-                pass
+                    stakes[node_id] = round(wei / 1e18, 4)  # wei → MON
+                except Exception:
+                    stakes[node_id] = 0
+            else:
+                stakes[node_id] = 0
 
         # 9. Save round result
         round_result = {

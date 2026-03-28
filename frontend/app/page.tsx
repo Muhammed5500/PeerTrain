@@ -9,13 +9,13 @@ import TransactionLog from "./components/TransactionLog";
 import RoundDetail from "./components/RoundDetail";
 import DrawDigit from "./components/DrawDigit";
 
-const INITIAL_STAKE = 1000;
+const INITIAL_STAKE = 1.0; // 1 MON
 const NODE_IDS = ["node_A", "node_B", "node_C", "node_D"];
 const NODE_ADDRESSES: Record<string, string> = {
-  node_A: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-  node_B: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-  node_C: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-  node_D: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+  node_A: "0xeEc5495b4247B6C2Edd2746CbBab8065a1C5f927",
+  node_B: "0x03462c49F306cdf4D600Bc02fB1017Afc1F07787",
+  node_C: "0xb9285597c79946c9b357F56831Ef79160b230368",
+  node_D: "0x8e0D8098A5E781f1562C7b4bF2cb03eE77F0AE68",
 };
 
 export default function Home() {
